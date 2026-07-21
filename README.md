@@ -3,7 +3,8 @@
 
 ## Directory Structure 
 
-### Parent directory: MIND output
+```bash
+Parent directory: MIND output
   
    **Sub directory**: sub x QC per feature tables
    
@@ -35,7 +36,8 @@
                
          -> 5 microstructural features 
          
-         -> 10 feature altogether 
+         -> 10 feature altogether
+```
 
 ## QC output
 
