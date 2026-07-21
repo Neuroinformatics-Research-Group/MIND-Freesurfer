@@ -4,7 +4,8 @@
 ## Directory Structure 
 
 ```bash
-Parent directory: MIND output
+|
+|-Parent directory: MIND output
   
    **Sub directory**: sub x QC per feature tables
    
