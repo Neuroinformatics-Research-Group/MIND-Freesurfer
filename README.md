@@ -4,38 +4,38 @@
 ## Directory Structure 
 
 **Parent directory**: MIND output
-
-   **Sub directory**: sub x QC per feature tables
-   
-   **Sub directory**: Subject specific folders
-   
-                           -> native space
-                           
-                                 -> parcellation
-                                 
-                                       -> raw 
-                                       
-                                       -> PCA
-                                       
-                           -> fsavergae6 space
-                           
-                                 -> parc
-                                 
-                                       -> raw
-                                       
-                                       -> pca
-   
-   **Sub directory**: PCA model weights
-   
-         -> 5 macrostructural features
-         
-               Pickle file 1: standard scaler weights
-               
-               Pickle file 2: feature x PCA weights (matrix)
-               
-         -> 5 microstructural features 
-         
-         -> 10 feature altogether 
+  
+     **Sub directory**: sub x QC per feature tables
+     
+     **Sub directory**: Subject specific folders
+     
+                             -> native space
+                             
+                                   -> parcellation
+                                   
+                                         -> raw 
+                                         
+                                         -> PCA
+                                         
+                             -> fsavergae6 space
+                             
+                                   -> parc
+                                   
+                                         -> raw
+                                         
+                                         -> pca
+     
+     **Sub directory**: PCA model weights
+     
+           -> 5 macrostructural features
+           
+                 Pickle file 1: standard scaler weights
+                 
+                 Pickle file 2: feature x PCA weights (matrix)
+                 
+           -> 5 microstructural features 
+           
+           -> 10 feature altogether 
 
 ## QC output
 
