@@ -4,40 +4,47 @@
 ## Directory Structure 
 
 ```bash
-|
-|-Parent directory: MIND output
-  
-   **Sub directory**: sub x QC per feature tables
-   
-   **Sub directory**: Subject specific folders
-   
-                           -> native space
-                           
-                                 -> parcellation
-                                 
-                                       -> raw 
-                                       
-                                       -> PCA
-                                       
-                           -> fsavergae6 space
-                           
-                                 -> parc
-                                 
-                                       -> raw
-                                       
-                                       -> pca
-   
-   **Sub directory**: PCA model weights
-   
-         -> 5 macrostructural features
-         
-               Pickle file 1: standard scaler weights
-               
-               Pickle file 2: feature x PCA weights (matrix)
-               
-         -> 5 microstructural features 
-         
-         -> 10 feature altogether
+├── MIND output
+│   ├── QC output
+│   ├── PCA model weights
+│   │   ├── 5 macrostructural features
+│   │   │   ├── Pickle file 1: standard scaler weights
+│   │   │   ├── Pickle file 2: feature x PCA weights (matrix)
+│   │   ├── 5 microstructural features
+│   │   │   ├── Pickle file 1: standard scaler weights
+│   │   │   ├── Pickle file 2: feature x PCA weights (matrix)
+│   │   ├── 10 features (micro + macro)
+│   │   │   ├── Pickle file 1: standard scaler weights
+│   │   │   ├── Pickle file 2: feature x PCA weights (matrix)
+│   ├── Subject specific folders (i.e., UKBXXXXX)
+│   │   ├── 5 macrostructural features
+│   │   │  ├── Native space
+│   │   │  │   ├── Parcellation (i.e., aparc)
+│   │   │  │   │   ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │   ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+│   │   │  ├──fsaverage6 space
+│   │   │  │   ├──Parcellation (i.e., aparc)
+│   │   │  │   │  ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │  ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+│   │   ├── 5 microstructural features
+│   │   │  ├── Native space
+│   │   │  │   ├── Parcellation (i.e., aparc)
+│   │   │  │   │   ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │   ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+│   │   │  ├──fsaverage6 space
+│   │   │  │   ├──Parcellation (i.e., aparc)
+│   │   │  │   │  ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │  ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+│   │   ├── 10 features (macro + micro)
+│   │   │  ├── Native space
+│   │   │  │   ├── Parcellation (i.e., aparc)
+│   │   │  │   │   ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │   ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+│   │   │  ├──fsaverage6 space
+│   │   │  │   ├──Parcellation (i.e., aparc)
+│   │   │  │   │  ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
+│   │   │  │   │  ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
+└── 
 ```
 
 ## QC output
