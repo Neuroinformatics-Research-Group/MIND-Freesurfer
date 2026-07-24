@@ -2,8 +2,8 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-from MIND_helpers_2026 import calculate_mind_network, calculate_mind_network_fast, is_outlier, filter_vertex_data, scale_vertex_data, calculate_mind_network_fast_noROIflag
-from get_vertex_df import get_vertex_df
+from src.MIND_helpers_2026 import calculate_mind_network, calculate_mind_network_fast, is_outlier, filter_vertex_data, scale_vertex_data #, calculate_mind_network_fast_noROIflag
+from src.get_vertex_df import get_vertex_df
 import time
 
 def compute_MIND(surf_dir, features_manual_list, parcellation, n_jobs=2, filter_vertices=False):
@@ -42,16 +42,20 @@ def compute_MIND(surf_dir, features_manual_list, parcellation, n_jobs=2, filter_
                                            regions,
                                            percentage_change,  # e.g. per_label_stats["pct_retained"]
                                            n_jobs=n_jobs,
-                                           pct_threshold=50.0,
-                                           min_vertices=1,
-                                           verbose=False)
+                                           verbose=True)
     else:
 
         # standardize across the brain for each feature to get each dimension to roughly the same scale.
         vertex_data_z = scale_vertex_data(vertex_data)
 
         # calculate MIND!
-        MIND = calculate_mind_network_fast_noROIflag(vertex_data_z, features_generated_list, regions, n_jobs=n_jobs)
+        MIND = calculate_mind_network_fast(vertex_data_z,
+                                           features_generated_list,
+                                           regions,
+                                           percentage_change,  # e.g. per_label_stats["pct_retained"]
+                                           n_jobs=n_jobs,
+                                           verbose=True,
+                                           roi_flag=True)
 
         # calculate MIND network (ISAAC ORIGINAL FUNCTION)
         # MIND = calculate_mind_network(vertex_data, features_used, regions)

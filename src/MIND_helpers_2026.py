@@ -136,6 +136,7 @@ Sarah additions (Feb-March 2026), code written in collaboration with Claude (cha
 Comments manually written, for any errors: skc48@cam.ac.uk
 
 filter_vertex_data()
+get_qc_data()
 scale_vertex_data()
 calculate_mind_network_fast()
 
@@ -252,6 +253,57 @@ def filter_vertex_data(vertex_data, features_manual_list, features_generated_lis
     return vertex_data_clean, per_label_stats, #n_removed_vertices
 
 """
+COMMENTS for get_qc_data()
+
+"""
+
+# count number of zero values
+def n_zero_values(s):
+    return int((s == 0).sum())
+
+# count proportion of unique values
+def prop_identical_values(s):
+    # s = s.dropna()
+    # prop_unique = (1 - s.nunique() / len(s)) if len(s) else np.nan
+    return (1 - s.nunique() / len(s)) if len(s) else np.nan # prop_unique
+
+def get_qc_data(vertex_data,
+                features_generated_list):
+
+    records = []
+    for feat in features_generated_list:
+        values = vertex_data[feat].values
+        n_total = len(values)
+
+        records.append({
+            'feature': feat,
+            'n_total': n_total,
+            'n_outliers': int(is_outlier(values, thresh=7).sum()),
+            'prop_identical_values': 1 - (len(np.unique(values)) / n_total),
+            'n_zero_values': int(np.sum(values == 0)),
+        })
+
+    qc_dataframe = pd.DataFrame(records).set_index('feature')
+
+    # by roi dataframe in long format (one column per metric, where each roi is an roi and feature is label
+    roi_qc = (
+        vertex_data
+        .groupby('Label')[features_generated_list]
+        .agg([n_zero_values, prop_identical_values])
+        .stack(level=0)
+        .rename_axis(['roi', 'feature'])
+        .sort_index()
+    )
+
+    # ROI size
+    roi_qc['n_vertices'] = (
+        vertex_data.groupby('Label').size()
+        .reindex(roi_qc.index.get_level_values('roi')).values
+    )
+
+    return qc_dataframe, roi_qc
+
+"""
 COMMENTS for scale_vertex_data()
 
 (Adapted from the original MIND function)
@@ -336,8 +388,14 @@ If True, you will get the following print out
 -> ROIS that were identified as not meeting the thresholds (undersized) and that will be NAN'd (not passed to the MIND computation)
 -> how much vertex level was in each of these ROIs by percentage
 
+9) roi_flag = True
 
+If True, the MIND function will be run on all of the data, regardless of cleaning
+If False, the various vertex percentage etc. thresholds will be passed
+
+---
 RETURNS
+---
 
 MIND: your ROI x ROI mind network, with undersized ROIs masked as NaNs
 
@@ -351,101 +409,133 @@ def calculate_mind_network_fast(vertex_df,
                                 n_jobs=2,
                                 pct_threshold=50.0,
                                 min_vertices=1,
-                                verbose=False):
+                                verbose=False,
+                                roi_flag=True):
 
     MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))),
                         index=region_list, columns=region_list)
 
-    # Convert to dict — faster than repeated groupby iteration
+    # Convert to dict, faster than repeated groupby iteration
     grouped_data = {name: dat for name, dat in vertex_df.groupby('Label')}
 
     # Only use regions that are actually in the data
     regions = [r for r in region_list if r in grouped_data]
 
-    if regions == list(region_list):
-        print("✓ regions matches region_list exactly (same items, same order)")
-    else:
-        print("✗ regions differs from region_list")
-        print(f"  region_list: {len(region_list)} items")
-        print(f"  regions:     {len(regions)} items")
-        print(f"  missing:     {sorted(set(region_list) - set(regions))}")
-        print(f"  extra:       {sorted(set(regions) - set(region_list))}")
+    if roi_flag:
+        # Build KD-trees
+        KDtrees = {name: get_KDTree(dat[features_generated_list]) for name, dat in grouped_data.items()}
 
-    # Identify regions that didn't retain enough vertices.
-    # A region is "undersized" if it's missing from percentage_change
-    # (never appeared / lost all vertices) OR fell below the threshold.
-    # percentages and threshold set as input to the function, where minium % is 50 and minimum vertex count is 1
-    # THESE ARE NOT SCIENTIFICALLY SOUND
-    # But, i.e., setting vertex count minimum to 1 stops the MIND computation from crashing out if a whole ROI is empty
-    # SO treat the presets as 'crash out' fail safes and NOT scientific parameters
-
-    sizes = {name: len(dat) for name, dat in grouped_data.items()}
-    undersized = {
-        r for r in regions
-        if r not in percentage_change.index
-        or percentage_change.loc[r] < pct_threshold
-        or sizes[r] < min_vertices
-    }
-
-    if undersized:
-        if verbose:
-            print(f"Found {len(undersized)} regions with < {pct_threshold}% vertex retention "
-                  f"(will return NaN for their pairs):")
-            print(f"undersized set has {len(undersized)} items: {sorted(undersized)}")
-            #print(f"percentage_change index has {len(percentage_change.index)} entries, "
-            #      f"{percentage_change.index.duplicated().sum()} duplicates")
-        for r in sorted(undersized):
-            pct = percentage_change.loc[r] if r in percentage_change.index else float('nan')
-            n = len(grouped_data[r])
-            if verbose:
-                print(f"  {r}: n={n}, pct_retained={pct:.1f}%")
-
-    # Build KD-trees only for regions that meet the minimum
-    KDtrees = {name: get_KDTree(dat[features_generated_list])
-               for name, dat in grouped_data.items()
-               if name not in undersized}
-
-    # Generate all unique pairs upfront
-    all_pairs = [(regions[i], regions[j])
+        # Generate all unique pairs upfront — eliminates used_pairs list scan
+        pairs = [(regions[i], regions[j])
                  for i in range(len(regions))
                  for j in range(i + 1, len(regions))]
 
-    # Split into pairs to compute vs pairs to set as NaN
-    pairs_to_compute = [(a, b) for a, b in all_pairs
-                        if a not in undersized and b not in undersized]
-    pairs_to_skip = [(a, b) for a, b in all_pairs
-                     if a in undersized or b in undersized]
+        print(f"Computing {len(pairs)} region pairs across {n_jobs} cores...")
 
-    print(f"Computing {len(pairs_to_compute)} region pairs across {n_jobs} cores "
-          f"(skipping {len(pairs_to_skip)} pairs involving undersized regions)...")
-
-    # Parallelise across valid pairs only
-    results = Parallel(n_jobs=n_jobs, backend="loky")(#, verbose=10)(
-        delayed(compute_pair)(
-            name_x, name_y,
-            grouped_data[name_x], grouped_data[name_y],
-            KDtrees[name_x], KDtrees[name_y],
-            features_generated_list
+        # Parallelise across pairs
+        # results = Parallel(n_jobs=n_jobs, prefer="threads")(
+        results = Parallel(n_jobs=n_jobs, backend="loky", verbose=10)(
+            delayed(compute_pair)(
+                name_x, name_y,
+                grouped_data[name_x], grouped_data[name_y],
+                KDtrees[name_x], KDtrees[name_y],
+                features_generated_list
+            )
+            for name_x, name_y in pairs
         )
-        for name_x, name_y in pairs_to_compute
-    )
 
-    # Fill matrix with computed values
-    for name_x, name_y, val in results:
-        MIND.at[name_x, name_y] = val
-        MIND.at[name_y, name_x] = val
+        # Fill matrix
+        for name_x, name_y, val in results:
+            MIND.at[name_x, name_y] = val
+            MIND.at[name_y, name_x] = val
 
-    # Fill NaN for pairs involving undersized regions
-    for name_x, name_y in pairs_to_skip:
-        MIND.at[name_x, name_y] = np.nan
-        MIND.at[name_y, name_x] = np.nan
+        MIND.index = MIND.columns
+        return MIND
+    else:
+        if regions == list(region_list):
+            print("✓ regions matches region_list exactly (same items, same order)")
+        else:
+            print("✗ regions differs from region_list")
+            print(f"  region_list: {len(region_list)} items")
+            print(f"  regions:     {len(regions)} items")
+            print(f"  missing:     {sorted(set(region_list) - set(regions))}")
+            print(f"  extra:       {sorted(set(regions) - set(region_list))}")
 
-    # Also set diagonal of undersized regions to NaN
-    for r in undersized:
-        MIND.at[r, r] = np.nan
+        # Identify regions that didn't retain enough vertices.
+        # A region is "undersized" if it's missing from percentage_change
+        # (never appeared / lost all vertices) OR fell below the threshold.
+        # percentages and threshold set as input to the function, where minium % is 50 and minimum vertex count is 1
+        # THESE ARE NOT SCIENTIFICALLY SOUND
+        # But, i.e., setting vertex count minimum to 1 stops the MIND computation from crashing out if a whole ROI is empty
+        # SO treat the presets as 'crash out' fail safes and NOT scientific parameters
 
-    MIND.index = MIND.columns
-    return MIND
+        sizes = {name: len(dat) for name, dat in grouped_data.items()}
+        undersized = {
+            r for r in regions
+            if r not in percentage_change.index
+            or percentage_change.loc[r] < pct_threshold
+            or sizes[r] < min_vertices
+        }
+
+        if undersized:
+            if verbose:
+                print(f"Found {len(undersized)} regions with < {pct_threshold}% vertex retention "
+                      f"(will return NaN for their pairs):")
+                print(f"undersized set has {len(undersized)} items: {sorted(undersized)}")
+                #print(f"percentage_change index has {len(percentage_change.index)} entries, "
+                #      f"{percentage_change.index.duplicated().sum()} duplicates")
+            for r in sorted(undersized):
+                pct = percentage_change.loc[r] if r in percentage_change.index else float('nan')
+                n = len(grouped_data[r])
+                if verbose:
+                    print(f"  {r}: n={n}, pct_retained={pct:.1f}%")
+
+        # Build KD-trees only for regions that meet the minimum
+        KDtrees = {name: get_KDTree(dat[features_generated_list])
+                   for name, dat in grouped_data.items()
+                   if name not in undersized}
+
+        # Generate all unique pairs upfront
+        all_pairs = [(regions[i], regions[j])
+                     for i in range(len(regions))
+                     for j in range(i + 1, len(regions))]
+
+        # Split into pairs to compute vs pairs to set as NaN
+        pairs_to_compute = [(a, b) for a, b in all_pairs
+                            if a not in undersized and b not in undersized]
+        pairs_to_skip = [(a, b) for a, b in all_pairs
+                         if a in undersized or b in undersized]
+
+        print(f"Computing {len(pairs_to_compute)} region pairs across {n_jobs} cores "
+              f"(skipping {len(pairs_to_skip)} pairs involving undersized regions)...")
+
+        # Parallelise across valid pairs only
+        results = Parallel(n_jobs=n_jobs, backend="loky")(#, verbose=10)(
+            delayed(compute_pair)(
+                name_x, name_y,
+                grouped_data[name_x], grouped_data[name_y],
+                KDtrees[name_x], KDtrees[name_y],
+                features_generated_list
+            )
+            for name_x, name_y in pairs_to_compute
+        )
+
+        # Fill matrix with computed values
+        for name_x, name_y, val in results:
+            MIND.at[name_x, name_y] = val
+            MIND.at[name_y, name_x] = val
+
+        # Fill NaN for pairs involving undersized regions
+        for name_x, name_y in pairs_to_skip:
+            MIND.at[name_x, name_y] = np.nan
+            MIND.at[name_y, name_x] = np.nan
+
+        # Also set diagonal of undersized regions to NaN
+        for r in undersized:
+            MIND.at[r, r] = np.nan
+
+        MIND.index = MIND.columns
+        return MIND
 
 
 """
@@ -453,14 +543,12 @@ RUN THE MIND FUNCTION IN PARALLEL, but no ROI masking
 
 NB. I believe this function will fail if an ROI (i.e., in coarser parcellations) has 0 vertices
 
-"""
-
 def calculate_mind_network_fast_noROIflag(vertex_df, feature_cols, region_list, n_jobs=8):
 
     MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))),
                         index=region_list, columns=region_list)
 
-    # Convert to dict — faster than repeated groupby iteration
+    # Convert to dict, faster than repeated groupby iteration
     grouped_data = {name: dat for name, dat in vertex_df.groupby('Label')}
 
     # Only use regions that are actually in the data
@@ -495,3 +583,5 @@ def calculate_mind_network_fast_noROIflag(vertex_df, feature_cols, region_list, 
 
     MIND.index = MIND.columns
     return MIND
+
+"""
