@@ -2,13 +2,25 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-from src.MIND_helpers_2026 import calculate_mind_network, calculate_mind_network_fast, is_outlier, filter_vertex_data, scale_vertex_data #, calculate_mind_network_fast_noROIflag
+from src.MIND_helpers_2026 import calculate_mind_network, calculate_mind_network_fast, is_outlier, filter_vertex_data, scale_vertex_data, get_qc_data
 from src.get_vertex_df import get_vertex_df
+from src.convert_to_mgz import convert_to_mgz
 import time
 
-def compute_MIND(surf_dir, features_manual_list, parcellation, n_jobs=2, filter_vertices=False):
+def compute_MIND(surf_dir, features_manual_list, parcellation, micro=False, return_qc=True, n_jobs=2, resample=False, filter_vertices=False):
 
     vertex_data, regions, features_generated_list = get_vertex_df(surf_dir, features_manual_list, parcellation)
+
+    '''
+    Get QC data
+    '''
+
+    qc_dataframe, roi_qc = get_qc_data(vertex_data, features_manual_list, features_generated_list, micro=micro)
+
+    # save out in current directory
+
+    # qc_dataframe.to_csv(os.path.join(YOUR_DIR, 'qc_dataframe.csv'))
+    # roi_qc.to_csv(os.path.join(YOUR_DIR,'roi_qc.csv'))
 
     '''
 	Filter the data, do some QC checks here.
@@ -42,6 +54,7 @@ def compute_MIND(surf_dir, features_manual_list, parcellation, n_jobs=2, filter_
                                            regions,
                                            percentage_change,  # e.g. per_label_stats["pct_retained"]
                                            n_jobs=n_jobs,
+                                           resample=resample,
                                            verbose=True)
     else:
 
@@ -55,11 +68,14 @@ def compute_MIND(surf_dir, features_manual_list, parcellation, n_jobs=2, filter_
                                            percentage_change,  # e.g. per_label_stats["pct_retained"]
                                            n_jobs=n_jobs,
                                            verbose=True,
+                                           resample=resample,
                                            roi_flag=True)
 
         # calculate MIND network (ISAAC ORIGINAL FUNCTION)
         # MIND = calculate_mind_network(vertex_data, features_used, regions)
     print('Done!')
     print(f"MIND computation: {time.time() - t0:.1f}s")
-
-    return MIND
+    if return_qc:
+        return MIND, qc_dataframe, roi_qc
+    else:
+        return MIND
