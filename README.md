@@ -9,33 +9,29 @@
 │   ├── networks
 │   │   ├── subject specific folders (i.e., UKBXXXXX)
 │   │   │  ├── features (i.e., CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD)
-│   │   │  │   ├── QC
+│   │   │  │   ├── parcelation
 │   │   │  │   │   ├── native space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
-│   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
-│   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
-│   │   │  │   ├── fsaverage6 space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
-│   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
-│   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
-│   │   │  │   ├── MIND
-│   │   │  │   │   ├── native space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
+│   │   │  │   │   │  ├── QC
+│   │   │  │   │   │  │  ├── roi_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  │  ├── global_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  ├── MIND
 │   │   │  │   │   │  │  ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
 │   │   │  │   │   │  │  ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
 │   │   │  │   │   ├── fsaverage6 space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
+│   │   │  │   │   │  ├── QC
+│   │   │  │   │   │  │  ├── roi_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  │  ├── global_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  ├── MIND
 │   │   │  │   │   │  │  ├── raw MIND network (ie., UKBXXXXX_mind_raw.csv)
 │   │   │  │   │   │  │  ├── PCA MIND network (ie., UKBXXXXX_mind_pca.csv)
 │   ├── stats
 │   │   ├── features (i.e., CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD)
 │   │   │  │   ├── QC
-│   │   │  │   │   ├── native space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
+│   │   │  │   │   ├── parcelation
+│   │   │  │   │   │  ├── native space
 │   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
 │   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
-│   │   │  │   ├── fsaverage6 space
-│   │   │  │   │   │  ├── parcellation (i.e., aparc)
+│   │   │  │   │   │  ├── fsaverage6 space
 │   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
 │   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
 │   │   │  │   ├── PCA model weights
