@@ -29,11 +29,11 @@
 │   │   │  │   ├── QC
 │   │   │  │   │   ├── parcelation
 │   │   │  │   │   │  ├── native space
-│   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
-│   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
+│   │   │  │   │   │  │  ├── roi_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  │  ├── global_qc.csv (run once, all 10 features)
 │   │   │  │   │   │  ├── fsaverage6 space
-│   │   │  │   │   │  │  ├── roi_qc.csv (run once, for all 10 features)
-│   │   │  │   │   │  │  ├── global_qc.csv (run once, for all 10 features)
+│   │   │  │   │   │  │  ├── roi_qc.csv (run once, all 10 features)
+│   │   │  │   │   │  │  ├── global_qc.csv (run once, all 10 features)
 │   │   │  │   ├── PCA model weights
 │   │   │  │   │   ├── Pickle file 1: standard scaler weights
 │   │   │  │   │   ├── Pickle file 2: feature x PCA weights (matrix)
