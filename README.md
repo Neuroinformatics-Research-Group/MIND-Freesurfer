@@ -1,6 +1,12 @@
 # UKB-MIND
 *Scripts for running MIND on the whole of UKB structural imaging data*
 
+## Parcellations
+'aparc':                         'DK68'
+'500_sym.aparc':                 'DK318'
+'HCP.coarse.fsaverage.aparc':    'HCP46' _generated from the MIND networks informed graph metrics_
+'HCP.fsaverage.aparc':           'HCP360'
+
 ## Directory Structure 
 
 ```bash
