@@ -1,7 +1,7 @@
 # UKB-MIND
 *Scripts for running MIND on the whole of UKB structural imaging data*
 
-## HOW TO USE
+## HOW TO USE
 
 The only baked in assumption with this pipeline is that your are working from the Cambridge CSD3 clusters and that you are using structural imaging data that has been preprocessed in Freesurfer. 
 
