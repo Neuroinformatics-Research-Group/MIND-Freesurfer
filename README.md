@@ -6,7 +6,7 @@
 
 ## Introduction
 
-This pipeline makes one baked-in assumption: you are working on the **`<redacted>` HPC cluster** with structural imaging data that has already been preprocessed in **Freesurfer**.
+This pipeline makes one baked-in assumption: you are working on the **CSD3 HPC cluster** with structural imaging data that has already been preprocessed in **Freesurfer**.
 
 If you meet that requirement, you're ready to go:
 
