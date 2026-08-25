@@ -24,7 +24,7 @@ mkdir -p logs
 # a task is actually scheduled on a compute node -- sourcing this same
 # logic from launch_mind.sh, before sbatch has even run, would find no
 # array task ID and fail before submission.
-sublist="${script_dir}/subject_list.txt"
+sublist="${script_dir}/${subject_list_filename}"
 export subject=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$sublist")
 
 if [ -z "$subject" ]; then

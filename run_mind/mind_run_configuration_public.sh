@@ -13,6 +13,10 @@ export account=YOURACCOUNT
 export partition=PARTITION
 export job_name="your_job_name_here"
 
+# subject list file
+
+export subject_list_filename="subject_list.txt"
+
 # MIND arguments
 
 export data_dir="your/data/directory/path/here"

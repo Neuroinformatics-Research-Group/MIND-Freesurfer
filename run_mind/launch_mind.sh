@@ -15,7 +15,7 @@ mkdir -p "${script_dir}/logs"
 # current subject list, without needing to edit this file when the list
 # changes. sublist here mirrors the path submit_mind.sh resolves
 # internally (relative to script_dir, passed through via --export below).
-sublist="${script_dir}/subject_list.txt"
+sublist="${script_dir}/${subject_list_filename}"
 n_subs=$(wc -l < "$sublist")
 
 # script_dir is passed through explicitly rather than relying on
