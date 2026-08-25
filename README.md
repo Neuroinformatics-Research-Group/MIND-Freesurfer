@@ -1,6 +1,22 @@
 # UKB-MIND
 *Scripts for running MIND on the whole of UKB structural imaging data*
 
+## HOW TO USE
+
+The only baked in assumption with this pipeline is that your are working from the Cambridge CSD3 clusters and that you are using structural imaging data that has been preprocessed in Freesurfer. 
+
+Assuming you have met those requirements then you are safe to copy the directory run_mind onto to your HPC scratch folder and start computing MIND networks. 
+
+You will only need to make the following edits: 
+
+- to edit this file mind_run_configuration.sh
+- make sure you have your real license.txt Freesurfer file (the one in this directory is a dummy file)
+- make sure you have a real subject_list.txt file with your subject EIDs (again, the one here is a dummy file that demonstrates how your subject EIDs should be stored in subject_list.txt). 
+
+Depending on computational/resource limits you may want to create multiple subject_list.txt files with individual names - in which case you just need to edit line 27 in submit_mind.sh 
+
+sublist="${script_dir}/subject_list.txt" -> sublist="${script_dir}/<whatever_you_want_to_call_your_subjectlist>.txt"
+
 ## Parcellations
 'aparc':                         'DK68'
 
