@@ -6,7 +6,7 @@ from os.path import exists
 from nibabel.freesurfer.io import read_morph_data, read_annot
 from nibabel.freesurfer.mghformat import load
 from collections import defaultdict
-from MIND_helpers import calculate_mind_network, is_outlier
+#from MIND_helpers import calculate_mind_network, is_outlier
 
 def get_vertex_df(surf_dir, features, parcellation):
 

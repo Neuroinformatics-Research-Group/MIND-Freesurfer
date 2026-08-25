@@ -5,6 +5,9 @@ from collections import defaultdict
 from joblib import Parallel, delayed
 from scipy import stats
 
+# for extracting names from filepaths
+from pathlib import PureWindowsPath
+
 def is_outlier(points, thresh=7): #taken from https://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
 
     """
@@ -133,15 +136,50 @@ def calculate_mind_network(data_df, feature_cols, region_list):
 
 
 """
-Sarah additions (Feb-March 2026), code written in collaboration with Claude (chat interface)
+Sarah additions (Feb-Aug 2026), code written in collaboration with Claude (chat interface)
 Comments manually written, for any errors: skc48@cam.ac.uk
 
+get_micro_feature()
+resolve_features() 
 filter_vertex_data()
 get_qc_data()
 scale_vertex_data()
 calculate_mind_network_fast()
 
 """
+
+def get_micro_features(feature_list_to_use):
+    features = {
+        'FA': 'dti_FA_T1space_al2std60_back2sub',
+        'MD': 'dti_MD_T1space_al2std60_back2sub',
+        'ICVF': 'NODDI_ICVF_T1space_al2std60_back2sub',
+        'ISOVF': 'NODDI_ISOVF_T1space_al2std60_back2sub',
+        'OD': 'NODDI_OD_T1space_al2std60_back2sub',
+    }
+    ignored = [key for key in feature_list_to_use if key not in features]
+    if ignored:
+        print(f'  WARNING: ignoring unrecognized micro feature(s) - probably macro: {ignored}')
+
+    return {key: features[key] for key in feature_list_to_use if key in features}
+
+"""
+COMMENTS for resolve_features: 
+
+Keeps created .mgz files in tmp directory and is able to pass features for stuff in UKB directory and in tmp directories together into the main MIND function
+
+1) feature_list is a list of features to be used i.e, ["CT", "FA", "OD"] etc. and can be a combination of micro and macro (note that if your
+list only contains macro you don't need to pass resolve_features
+2) custom_dirs is a dictionary that maps the micro structural data (which sits in a tmp directory somewhere wherever you want it to live) (not needed for macro, the function will just ignore any features without manually set file structures)
+
+"""
+def resolve_features(feature_list, custom_dirs):
+    resolved = []
+    for f in feature_list:
+        if f in custom_dirs:
+            resolved.append(custom_dirs[f])   # already a (lh_path, rh_path) tuple
+        else:
+            resolved.append(f)
+    return resolved
 
 """
 
@@ -256,6 +294,9 @@ def filter_vertex_data(vertex_data, features_manual_list, features_generated_lis
 """
 COMMENTS for get_qc_data()
 
+Returns two dataframes (one general, one per ROI) that contain the relevant MIND qc metrics
+See protocol
+
 """
 
 # count number of zero values
@@ -266,48 +307,65 @@ def n_zero_values(s):
 def n_identical_values(s):
     return int(len(s) - s.nunique())
 
+# get concentration coefficient of 'bad' vertex data
+# Bandt, 2020: https://www.mdpi.com/1099-4300/22/11/1315
+def concentration_coefficient(p, q):
+    p = np.asarray(p, dtype=float)
+    q = np.asarray(q, dtype=float)
+
+    if p.shape != q.shape:
+        raise ValueError("p and q must be the same length")
+
+    if np.any(q <= 0):
+        raise ValueError("q_i must be > 0 for log(q_i) to be defined")
+
+    # H(P) = sum_i p_i * log(p_i), treating p_i = 0 as contributing 0
+    numerator = np.sum(np.where(p != 0, p * np.log(p, where=(p != 0)), 0.0))
+
+    # -(H + D) = sum_i p_i * log(q_i)
+    denominator = np.sum(p * np.log(q))
+
+    U = numerator / denominator
+    C = 1 - U
+    return C
+
 def get_qc_data(vertex_data,
                 features_manual_list,
                 features_generated_list,
-                micro=False,
                 thresh=7,
                 label_col='Label'):
 
-    if micro:
-        from pathlib import PureWindowsPath
-        import os
-        def walk(x):
-            if isinstance(x, (str, bytes, os.PathLike)):
-                yield x
-            else:
-                for item in x:
-                    yield from walk(item)
+    def extract_name(feature):
+        if isinstance(feature, tuple):
+            feature = feature[0]  # use lh path; naming convention is identical for rh
+        if isinstance(feature, str) and ('/' in feature or '\\' in feature):
+            return PureWindowsPath(feature).name.split('.')[1]
+        return feature
 
-        names = tuple(PureWindowsPath(p).name.split('.')[1] for p in walk(features_manual_list))
-        names = tuple(dict.fromkeys(names))
-        feature_conv_dict = dict(zip(features_generated_list, names))
-    else:
-        feature_conv_dict = dict(zip(features_generated_list, features_manual_list))
+    names = tuple(dict.fromkeys(extract_name(f) for f in features_manual_list))
+    feature_conv_dict = dict(zip(features_generated_list, names))
 
-    # outlier masks: computed ONCE, reused for both global and per-ROI
     outlier_masks = pd.DataFrame(
         {feat: is_outlier(vertex_data[feat].values, thresh=thresh)
          for feat in features_generated_list},
         index=vertex_data.index,
     )
 
-    # global (ROI-independent)
     records = []
     for feat in features_generated_list:
+
         values = vertex_data[feat].values
         n_total = len(values)
+        n_outliers2use = int(outlier_masks[feat].sum())
+        n_indentical_values2use = n_total - len(np.unique(values))
+        n_zero_values2use = int(np.sum(values == 0))
 
         records.append({
             'feature': feature_conv_dict[feat],
             'n_total': n_total,
-            'n_outliers': int(outlier_masks[feat].sum()),
-            'n_identical_values': n_total - len(np.unique(values)),
-            'n_zero_values': int(np.sum(values == 0)),
+            'n_outliers': n_outliers2use,
+            'n_identical_values': n_indentical_values2use,
+            'n_zero_values': n_zero_values2use,
         })
 
     qc_dataframe = pd.DataFrame(records).set_index('feature')
@@ -322,7 +380,6 @@ def get_qc_data(vertex_data,
         .sort_index()
     )
 
-    # outliers per ROI, from the same masks
     roi_outliers = (
         outlier_masks
         .groupby(vertex_data[label_col])
@@ -339,11 +396,61 @@ def get_qc_data(vertex_data,
         .reindex(roi_qc.index.get_level_values('roi')).values
     )
 
-    # pretty names on both halves
     roi_qc = roi_qc.rename(index=feature_conv_dict, level='feature')
-    #roi_qc = roi_qc.rename(features_generated_list, level='feature')
+
+    # Identify "bad" ROIs using the exact same exclusion rule get_vertex_df
+    # applies when building combined_regions (unknown/medial-wall/placeholder
+    # labels never used in the actual MIND network computation).
+    def is_bad_roi(name):
+        return ('?' in name) or ('unknown' in name) or ('Unknown' in name) or ('Medial_Wall' in name) or (len(name) == 3)
+
+    good_roi_mask = pd.Series(
+        ~roi_qc.index.get_level_values('roi').map(is_bad_roi),
+        index=roi_qc.index,
+    )
+
+    # concentration coefficients per feature, for each count type
+    count_cols = ['n_outliers', 'n_identical_values', 'n_zero_values']
+
+    for col in count_cols:
+        c_by_feature = {}
+        c_by_feature_excl_bad = {}
+
+        for feat, group in roi_qc.groupby(level='feature'):
+            p_counts = group[col].values.astype(float)
+            q_counts = group['n_vertices'].values.astype(float)
+
+            p_total = p_counts.sum()
+            q_total = q_counts.sum()
+
+            if p_total == 0 or q_total == 0:
+                # no occurrences of this metric anywhere thus concentration is undefined
+                c_by_feature[feat] = np.nan
+            else:
+                P = p_counts / p_total
+                Q = q_counts / q_total
+                c_by_feature[feat] = concentration_coefficient(P, Q)
+
+            # same computation, restricted to ROIs that survived get_vertex_df's filter (i.e., we ignore 'bad ROIS, lh_??? from glasser parcs)
+            mask = good_roi_mask.loc[group.index].values
+            p_counts_g = p_counts[mask]
+            q_counts_g = q_counts[mask]
+
+            p_total_g = p_counts_g.sum()
+            q_total_g = q_counts_g.sum()
+
+            if p_total_g == 0 or q_total_g == 0:
+                c_by_feature_excl_bad[feat] = np.nan
+            else:
+                P_g = p_counts_g / p_total_g
+                Q_g = q_counts_g / q_total_g
+                c_by_feature_excl_bad[feat] = concentration_coefficient(P_g, Q_g)
+
+        qc_dataframe[f'C_{col}'] = pd.Series(c_by_feature)
+        qc_dataframe[f'C_{col}_excl_bad_rois'] = pd.Series(c_by_feature_excl_bad)
 
     return qc_dataframe, roi_qc
+
 """
 COMMENTS for scale_vertex_data()
 
@@ -431,7 +538,7 @@ If True, you will get the following print out
 
 9) roi_flag = True
 
-If True, the MIND function will be run on all of the data, regardless of cleaning
+If True, the MIND function will be run on all of the data, regardless of cleaning (but will mask ROIS with no vertex data, BUT INCLUDE ones with a min of 1 vertex data)
 If False, the various vertex percentage etc. thresholds will be passed
 
 ---
@@ -441,12 +548,12 @@ RETURNS
 MIND: your ROI x ROI mind network, with undersized ROIs masked as NaNs
 
 """
-
-"""
 def calculate_mind_network_fast(vertex_df,
                                 features_generated_list,
                                 region_list,
                                 percentage_change,  # e.g. per_label_stats["pct_retained"]
+                                resample=False,
+                                n_samples=4000,
                                 n_jobs=2,
                                 pct_threshold=50.0,
                                 min_vertices=1,
@@ -456,43 +563,30 @@ def calculate_mind_network_fast(vertex_df,
     MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))),
                         index=region_list, columns=region_list)
 
-    # Convert to dict, faster than repeated groupby iteration
-    grouped_data = {name: dat for name, dat in vertex_df.groupby('Label')}
+    #Get only desired regions
+    data_df = vertex_df.loc[vertex_df['Label'].isin(region_list)]
+
+    #Resample dataset if resample has been set to True and if it is UNIVARIATE ONLY. This should only be done if you are using a single feature which contains repeated values.
+    if (len(features_generated_list) == 1) and resample==True:
+        n_samples = n_samples
+        resampled_dataset = pd.DataFrame(np.zeros((n_samples, len(region_list))), columns = region_list)
+
+        for name, data in data_df.groupby('Label'):
+            resampled_dataset[name] = stats.gaussian_kde(data[features_generated_list[0]]).resample(n_samples)[0]
+
+        resampled_dataset = resampled_dataset.melt(var_name = 'Label', value_name = features_generated_list[0])
+        data_df = resampled_dataset
+
+    if (len(features_generated_list) > 1) and resample==True:
+        raise Exception("Resampling the data is only supported if you are using a single feature -- this is because higher order density estimation can be unreliable and very computationally expensive.")
+
+    # Convert to dict — faster than repeated groupby iteration
+    grouped_data = {name: dat for name, dat in data_df.groupby('Label')}
 
     # Only use regions that are actually in the data
     regions = [r for r in region_list if r in grouped_data]
 
     if roi_flag:
-        # Build KD-trees
-        KDtrees = {name: get_KDTree(dat[features_generated_list]) for name, dat in grouped_data.items()}
-
-        # Generate all unique pairs upfront — eliminates used_pairs list scan
-        pairs = [(regions[i], regions[j])
-                 for i in range(len(regions))
-                 for j in range(i + 1, len(regions))]
-
-        print(f"Computing {len(pairs)} region pairs across {n_jobs} cores...")
-
-        # Parallelise across pairs
-        # results = Parallel(n_jobs=n_jobs, prefer="threads")(
-        results = Parallel(n_jobs=n_jobs, backend="loky", verbose=10)(
-            delayed(compute_pair)(
-                name_x, name_y,
-                grouped_data[name_x], grouped_data[name_y],
-                KDtrees[name_x], KDtrees[name_y],
-                features_generated_list
-            )
-            for name_x, name_y in pairs
-        )
-
-        # Fill matrix
-        for name_x, name_y, val in results:
-            MIND.at[name_x, name_y] = val
-            MIND.at[name_y, name_x] = val
-
-        MIND.index = MIND.columns
-        return MIND
-    else:
         if regions == list(region_list):
             print("✓ regions matches region_list exactly (same items, same order)")
         else:
@@ -502,34 +596,24 @@ def calculate_mind_network_fast(vertex_df,
             print(f"  missing:     {sorted(set(region_list) - set(regions))}")
             print(f"  extra:       {sorted(set(regions) - set(region_list))}")
 
-        # Identify regions that didn't retain enough vertices.
-        # A region is "undersized" if it's missing from percentage_change
-        # (never appeared / lost all vertices) OR fell below the threshold.
-        # percentages and threshold set as input to the function, where minium % is 50 and minimum vertex count is 1
-        # THESE ARE NOT SCIENTIFICALLY SOUND
-        # But, i.e., setting vertex count minimum to 1 stops the MIND computation from crashing out if a whole ROI is empty
-        # SO treat the presets as 'crash out' fail safes and NOT scientific parameters
+        # Identify regions with zero vertices remaining.
+        # A region is "undersized" only if it has no vertex data at all (i.e.
+        # missing from grouped_data, or present with 0 rows).
+        # This exists purely as a 'crash out' fail-safe so MIND computation (i.e., for fsaverage spaces)
+        # doesn't error out if a whole ROI is empty, not a scientific parameter.
 
         sizes = {name: len(dat) for name, dat in grouped_data.items()}
-        undersized = {
-            r for r in regions
-            if r not in percentage_change.index
-            or percentage_change.loc[r] < pct_threshold
-            or sizes[r] < min_vertices
-        }
+        undersized = {r for r in regions if sizes.get(r, 0) < min_vertices}
 
         if undersized:
             if verbose:
-                print(f"Found {len(undersized)} regions with < {pct_threshold}% vertex retention "
+                print(f"Found {len(undersized)} regions with 0 vertices "
                       f"(will return NaN for their pairs):")
                 print(f"undersized set has {len(undersized)} items: {sorted(undersized)}")
-                #print(f"percentage_change index has {len(percentage_change.index)} entries, "
-                #      f"{percentage_change.index.duplicated().sum()} duplicates")
             for r in sorted(undersized):
-                pct = percentage_change.loc[r] if r in percentage_change.index else float('nan')
-                n = len(grouped_data[r])
+                n = sizes.get(r, 0)
                 if verbose:
-                    print(f"  {r}: n={n}, pct_retained={pct:.1f}%")
+                    print(f"  {r}: n={n}")
 
         # Build KD-trees only for regions that meet the minimum
         KDtrees = {name: get_KDTree(dat[features_generated_list])
@@ -577,78 +661,8 @@ def calculate_mind_network_fast(vertex_df,
 
         MIND.index = MIND.columns
         return MIND
-    
-"""
-
-def calculate_mind_network_fast(vertex_df,
-                                features_generated_list,
-                                region_list,
-                                percentage_change,  # e.g. per_label_stats["pct_retained"]
-                                resample=False,
-                                n_samples=4000,
-                                n_jobs=2,
-                                pct_threshold=50.0,
-                                min_vertices=1,
-                                verbose=False,
-                                roi_flag=True):
-
-    MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))),
-                        index=region_list, columns=region_list)
-
-    #Get only desired regions
-    data_df = vertex_df.loc[vertex_df['Label'].isin(region_list)]
-
-    #Resample dataset if resample has been set to True and if it is UNIVARIATE ONLY. This should only be done if you are using a single feature which contains repeated values.
-    if (len(features_generated_list) == 1) and resample==True:
-        n_samples = n_samples
-        resampled_dataset = pd.DataFrame(np.zeros((n_samples, len(region_list))), columns = region_list)
-
-        for name, data in data_df.groupby('Label'):
-            resampled_dataset[name] = stats.gaussian_kde(data[features_generated_list[0]]).resample(n_samples)[0]
-
-        resampled_dataset = resampled_dataset.melt(var_name = 'Label', value_name = features_generated_list[0])
-        data_df = resampled_dataset
-
-    if (len(features_generated_list) > 1) and resample==True:
-        raise Exception("Resampling the data is only supported if you are using a single feature -- this is because higher order density estimation can be unreliable and very computationally expensive.")
-
-    # Convert to dict — faster than repeated groupby iteration
-    grouped_data = {name: dat for name, dat in data_df.groupby('Label')}
-
-    # Only use regions that are actually in the data
-    regions = [r for r in region_list if r in grouped_data]
-
-    if roi_flag:
-
-        # Build KD-trees
-        KDtrees = {name: get_KDTree(dat[features_generated_list]) for name, dat in grouped_data.items()}
-
-        # Generate all unique pairs upfront — eliminates used_pairs list scan
-        pairs = [(regions[i], regions[j])
-                 for i in range(len(regions))
-                 for j in range(i + 1, len(regions))]
-
-        print(f"Computing {len(pairs)} region pairs across {n_jobs} cores...")
-
-        # Parallelise across pairs
-        results = Parallel(n_jobs=n_jobs, prefer="threads")(
-            delayed(compute_pair)(
-                name_x, name_y,
-                grouped_data[name_x], grouped_data[name_y],
-                KDtrees[name_x], KDtrees[name_y],
-                features_generated_list
-            )
-            for name_x, name_y in pairs
-        )
-
-        # Fill matrix
-        for name_x, name_y, val in results:
-            MIND.at[name_x, name_y] = val
-            MIND.at[name_y, name_x] = val
-
-        MIND.index = MIND.columns
-        return MIND
     else:
+
         if regions == list(region_list):
             print("✓ regions matches region_list exactly (same items, same order)")
         else:

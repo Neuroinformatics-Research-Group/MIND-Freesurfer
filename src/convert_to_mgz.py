@@ -62,13 +62,14 @@ def save_as_mgz(data, out_path):
     img = MGHImage(vol, affine=np.eye(4))
     nib.save(img, out_path)
 
-def convert_to_mgz(tmp_dir, vol2surf_dir, path_to_surf_dir, parcellation, features):
+def convert_to_mgz(tmp_dir, vol2surf_dir, path_to_surf_dir, parcellation, features, check_native_parc=True):
 
     # Temporary directory for converted .mgz files (cleaned up at the end)
     # Placed in work_dir — NOT in Data_Imaging which is read-only
     os.makedirs(tmp_dir, exist_ok=True)
 
-    feature_tuples = []   # list of (lh_path, rh_path) tuples — one per metric
+    custom_feature_dirs = {}        # metric_name -> tmp_dir, for successfully converted metrics
+    custom_feature_dirs_dict = {}   # metric_name -> '?h'-templated path, for project_custom_features / build_feature_tuples
 
     for metric_name, file_stem in features.items():
         converted_paths = {}
@@ -88,16 +89,19 @@ def convert_to_mgz(tmp_dir, vol2surf_dir, path_to_surf_dir, parcellation, featur
             converted_paths[hemi] = dest
 
         if len(converted_paths) == 2:
-            feature_tuples.append((converted_paths['lh'], converted_paths['rh']))
+            # Build the '?'-templated path from either hemisphere's dest path
+            template_path = os.path.join(tmp_dir, f'?.{metric_name}.mgz')
+            custom_feature_dirs_dict[metric_name] = template_path
+            custom_feature_dirs[metric_name] = (converted_paths['lh'], converted_paths['rh'])
             print(f"  {metric_name}: ready")
         else:
             print(f"  {metric_name}: SKIPPED (missing hemisphere file)")
 
-    if len(feature_tuples) == 0:
+    if len(custom_feature_dirs) == 0:
         print("ERROR: No DWI feature files found. Check vol2surf_dir path.")
-        sys.exit(1)
+        #sys.exit(1) # removed system exit so that subjects without DWI data don't exit the script
 
-    print(f"\nUsing {len(feature_tuples)} DWI features: {list(features.keys())[:len(feature_tuples)]}")
+    print(f"\nUsing {len(custom_feature_dirs)} DWI features: {list(custom_feature_dirs.keys())}")
 
     # CHECK PARCELLATION .ANNOT FILES
     # get_vertex_df looks for:
@@ -109,15 +113,60 @@ def convert_to_mgz(tmp_dir, vol2surf_dir, path_to_surf_dir, parcellation, featur
     # DWI volumetric parcellation) are never present in .annot files so
     # they are automatically excluded by get_vertex_df.
 
-    lh_annot = os.path.join(path_to_surf_dir, 'label', f'lh.{parcellation}.annot')
-    rh_annot = os.path.join(path_to_surf_dir, 'label', f'rh.{parcellation}.annot')
+    if check_native_parc:
+        lh_annot = os.path.join(path_to_surf_dir, 'label', f'lh.{parcellation}.annot')
+        rh_annot = os.path.join(path_to_surf_dir, 'label', f'rh.{parcellation}.annot')
 
-    if not os.path.exists(lh_annot) or not os.path.exists(rh_annot):
-        print(f"ERROR: Parcellation .annot files not found in:\n"
-              f"  {os.path.join(path_to_surf_dir, 'label')}\n"
-              f"Expected: lh.{parcellation}.annot and rh.{parcellation}.annot")
-        sys.exit(1)
+        if not os.path.exists(lh_annot) or not os.path.exists(rh_annot):
+            print(f"ERROR: Parcellation .annot files not found in:\n"
+                  f"  {os.path.join(path_to_surf_dir, 'label')}\n"
+                  f"Expected: lh.{parcellation}.annot and rh.{parcellation}.annot")
+            # sys.exit(1) -> see above
 
-    print(f"Found parcellation .annot files in {os.path.join(path_to_surf_dir, 'label')}")
+        print(f"Found parcellation .annot files in {os.path.join(path_to_surf_dir, 'label')}")
 
-    return feature_tuples
+    return custom_feature_dirs, custom_feature_dirs_dict
+
+def get_mgz_filepaths(tmp_dir, features):
+    """
+    Same output shape as convert_to_mgz's (custom_feature_dirs,
+    custom_feature_dirs_dict), but skips all conversion work (assumes the
+    .mgz files already exist in tmp_dir and just checks for/collects them).
+
+    Use this instead of convert_to_mgz when you are SURE you have already created the .mgz files.
+    Otherwise, your MIND computation will fail - well this function will probs fail as well.
+
+    input:
+        tmp_dir (str or Path): directory expected to contain
+            {hemi}.{metric_name}.mgz for each metric_name in features.
+        features (dict): metric_name -> file_stem, the same used in convert_to_mgz's `features`
+            argument. We only use metric_name (file_stem is only needed for the .1D conversion step, which this function never does).
+
+    returns:
+        custom_feature_dirs (dict): metric_name -> (lh_path, rh_path),
+            for metrics where both hemisphere .mgz files exist.
+        custom_feature_dirs_dict (dict): metric_name -> '?'-templated path,
+            for the same metrics.
+    """
+    custom_feature_dirs = {}
+    custom_feature_dirs_dict = {}
+
+    for metric_name in features:
+        lh_path = os.path.join(tmp_dir, f'lh.{metric_name}.mgz')
+        rh_path = os.path.join(tmp_dir, f'rh.{metric_name}.mgz')
+
+        if os.path.exists(lh_path) and os.path.exists(rh_path):
+            template_path = os.path.join(tmp_dir, f'?.{metric_name}.mgz')
+            custom_feature_dirs_dict[metric_name] = template_path
+            custom_feature_dirs[metric_name] = (lh_path, rh_path)
+            print(f"  {metric_name}: found")
+        else:
+            print(f"  {metric_name}: SKIPPED (missing hemisphere file in {tmp_dir})")
+
+    if len(custom_feature_dirs) == 0:
+        print("ERROR: No existing DWI feature .mgz files found. "
+              f"Check tmp_dir ({tmp_dir}), or use convert_to_mgz if conversion hasn't run yet.")
+
+    print(f"\nUsing {len(custom_feature_dirs)} DWI features: {list(custom_feature_dirs.keys())}")
+
+    return custom_feature_dirs, custom_feature_dirs_dict
