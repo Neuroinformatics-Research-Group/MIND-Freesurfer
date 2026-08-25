@@ -19,8 +19,11 @@ Python 3.11.13
 ### Set up your python environment in your scratch directory from which you will launch the .sh scripts
 
 $ cd rds/hpc-work/run_mind
+
 $ python3.11 -m venv .venv
+
 $ source .venv/bin/activate
+
 $ pip install -r requirements.txt
 
 ## Parcellations
