@@ -1,5 +1,5 @@
-# UKB-MIND
-*Scripts for running MIND on the whole of UKB structural imaging data*
+# MIND-Freesurfer
+*Scripts for running MIND on the Freesurfer structural imaging data*
 
 ## Introduction
 
