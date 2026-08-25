@@ -1,7 +1,7 @@
 # UKB-MIND
 *Scripts for running MIND on the whole of UKB structural imaging data*
 
-## HOW TO USE
+## Introduction
 
 The only baked in assumption with this pipeline is that your are working from the Cambridge CSD3 clusters and that you are using structural imaging data that has been preprocessed in Freesurfer. 
 
@@ -11,8 +11,17 @@ You will only need to make the following edits:
 
 - edit slurm, subjectlist, and python calls/arguments in mind_run_configuration.sh
 - make sure you have your real license.txt Freesurfer file (the one in this directory is a dummy file)
-- make sure you have a real subject_list.txt file with your subject EIDs (again, the one here is a dummy file that demonstrates how your subject EIDs should be stored in subject_list.txt). 
+- make sure you have a real subject_list.txt file with your subject EIDs (again, the one here is a dummy file that demonstrates how your subject EIDs should be stored in subject_list.txt).
 
+## Python version required
+Python 3.11.13
+
+### Set up your python environment in your scratch directory from which you will launch the .sh scripts
+
+$ cd rds/hpc-work/run_mind
+$ python3.11 -m venv .venv
+$ source .venv/bin/activate
+$ pip install -r requirements.txt
 
 ## Parcellations
 'aparc':                         'DK68'
