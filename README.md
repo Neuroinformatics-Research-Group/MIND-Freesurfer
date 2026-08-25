@@ -16,7 +16,7 @@ You will only need to make the following edits:
 ## Python version required
 Python 3.11.13
 
-### Set up your python environment in your scratch directory from which you will launch the .sh scripts
+*How to set up your python environment in your scratch directory from which you will launch the .sh scripts*
 
 $ cd rds/hpc-work/run_mind
 
