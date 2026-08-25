@@ -4,7 +4,7 @@
 
 ---
 
-## 📖 Introduction
+## Introduction
 
 This pipeline makes one baked-in assumption: you are working on the **`<redacted>` HPC cluster** with structural imaging data that has already been preprocessed in **Freesurfer**.
 
@@ -23,7 +23,7 @@ If you meet that requirement, you're ready to go:
 
 ---
 
-## 🐍 Python Environment
+## Python Environment
 
 **Required version:** Python `3.11.13`
 
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🧩 Parcellations
+## Parcellations
 
 | Freesurfer parcellation | Alias |
 |---|---|
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 
 ---
 
-## 📂 Directory Structure
+## Directory Structure
 
 ```bash
 MIND-<projectname>/
@@ -89,7 +89,7 @@ MIND-<projectname>/
 
 ---
 
-## ✅ QC Output
+## QC Output
 
 Each QC file reports the following, both **overall** and **broken down by ROI**:
 
