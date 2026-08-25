@@ -74,7 +74,7 @@ def get_paths(EID: str, data_dir, out_dir, projectname, test_mode = False):
         "fsaverage_directory": os.path.join(root_path, "tmp_fsavg", EID),
         "network_directory": os.path.join(out_dir, project_dir, "networks", EID),
         "stats_directory": os.path.join(out_dir, project_dir, "stats", EID),
-        "parcellations_dir": os.path.join(root_path, project_dir, "parcellations", "fsaverage6")
+        "parcellations_dir": os.path.join(root_path, "parcellations", "fsaverage6")
     }
     return paths
 
