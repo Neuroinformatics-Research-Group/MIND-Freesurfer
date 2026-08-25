@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # mind_run_configuration.sh
 #
-# EDIT THIS FILE for every custom run. The SLURM submission script sources
-# it and stays untouched.
-
+# EDIT THIS FILE for every custom run. The SLURM submission script sources it and stays untouched.
 
 # SLURM confirguration
 
