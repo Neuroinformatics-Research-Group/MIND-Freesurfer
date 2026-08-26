@@ -72,8 +72,9 @@ def get_paths(EID: str, data_dir, out_dir, projectname, test_mode = False):
         "vol2surf_directory": os.path.join(data_dir, EID, "surfaces", "vol2surf_DWI", "surface"),
         "micro_directory": os.path.join(root_path, "tmp_mgz", EID),
         "fsaverage_directory": os.path.join(root_path, "tmp_fsavg", EID),
-        "network_directory": os.path.join(out_dir, project_dir, "networks", EID),
-        "stats_directory": os.path.join(out_dir, project_dir, "stats", EID),
+        #"network_directory": os.path.join(out_dir, project_dir, "networks", EID),
+        "network_directory": os.path.join(out_dir, project_dir, "networks"),
+        "stats_directory": os.path.join(out_dir, project_dir, "stats"),
         "parcellations_dir": os.path.join(root_path, "parcellations", "fsaverage6")
     }
     return paths
@@ -236,8 +237,8 @@ def main_analysis(EID,
 
     feature_directory_name = "_".join(feature_list_to_use)
 
-    mind_output_directory = os.path.join(paths["network_directory"], feature_directory_name, parcellation, space, "MIND")
-    qc_output_directory = os.path.join(paths["network_directory"], feature_directory_name, parcellation, space, "QC")
+    mind_output_directory = os.path.join(paths["network_directory"], space, parcellation, feature_directory_name, "MIND")
+    qc_output_directory = os.path.join(paths["network_directory"], space, parcellation, feature_directory_name, "QC")
 
     Path(mind_output_directory).mkdir(parents=True, exist_ok=True)
     Path(qc_output_directory).mkdir(parents=True, exist_ok=True)
@@ -275,8 +276,8 @@ def main_analysis(EID,
                                                           filter_vertices=filter_vertices)
 
                 MIND.to_csv(os.path.join(mind_output_directory, f"{EID}_mind_raw.csv"), index=False)
-                qc_dataframe.to_csv(os.path.join(qc_output_directory, f"global_qc_{parcellation}.csv"), index=False)
-                roi_qc.to_csv(os.path.join(qc_output_directory, f"roi_qc_{parcellation}.csv"), index=False)
+                qc_dataframe.to_csv(os.path.join(qc_output_directory, f"{EID}_global_qc.csv"), index=False)
+                roi_qc.to_csv(os.path.join(qc_output_directory, f"{EID}_roi_qc.csv"), index=False)
 
             else:
 
@@ -324,9 +325,8 @@ def main_analysis(EID,
                                                           filter_vertices=filter_vertices)
 
                 MIND.to_csv(os.path.join(mind_output_directory, f"{EID}_mind_raw.csv"), index=False)
-
-                qc_dataframe.to_csv(os.path.join(qc_output_directory, f"global_qc_{parcellation}.csv"), index=False)
-                roi_qc.to_csv(os.path.join(qc_output_directory, f"roi_qc_{parcellation}.csv"), index=False)
+                qc_dataframe.to_csv(os.path.join(qc_output_directory, f"{EID}_global_qc.csv"), index=False)
+                roi_qc.to_csv(os.path.join(qc_output_directory, f"{EID}_roi_qc.csv"), index=False)
 
             else:
 
