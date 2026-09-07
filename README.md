@@ -54,7 +54,7 @@ pip install -r requirements.txt
 ```bash
 MIND-<projectname>/
 ├── networks/
-│   └── <subject folder, e.g. UKBXXXXX>/
+│   └── <subject folder, e.g. SUBXXXXX>/
 │       └── features/                       # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
 │           └── <parcellation>/
 │               ├── native/
@@ -62,15 +62,15 @@ MIND-<projectname>/
 │               │   │   ├── roi_qc.csv      # run once, all 10 features
 │               │   │   └── global_qc.csv   # run once, all 10 features
 │               │   └── MIND/
-│               │       ├── UKBXXXXX_mind_raw.csv
-│               │       └── UKBXXXXX_mind_pca.csv
+│               │       ├── SUBXXXXX_mind_raw.csv
+│               │       └── SUBXXXXX_mind_pca.csv
 │               └── fsaverage6/
 │                   ├── QC/
 │                   │   ├── roi_qc.csv      # run once, all 10 features
 │                   │   └── global_qc.csv   # run once, all 10 features
 │                   └── MIND/
-│                       ├── UKBXXXXX_mind_raw.csv
-│                       └── UKBXXXXX_mind_pca.csv
+│                       ├── SUBXXXXX_mind_raw.csv
+│                       └── SUBXXXXX_mind_pca.csv
 │
 └── stats/
     └── features/                           # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
