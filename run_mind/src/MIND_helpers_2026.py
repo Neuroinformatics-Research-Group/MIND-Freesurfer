@@ -165,7 +165,7 @@ def get_micro_features(feature_list_to_use):
 """
 COMMENTS for resolve_features: 
 
-Keeps created .mgz files in tmp directory and is able to pass features for stuff in UKB directory and in tmp directories together into the main MIND function
+Keeps created .mgz files in tmp directory and is able to pass features for stuff in freesurfer directory and in tmp directories together into the main MIND function
 
 1) feature_list is a list of features to be used i.e, ["CT", "FA", "OD"] etc. and can be a combination of micro and macro (note that if your
 list only contains macro you don't need to pass resolve_features
