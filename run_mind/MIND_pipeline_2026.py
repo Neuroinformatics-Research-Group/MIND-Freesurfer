@@ -36,8 +36,8 @@ def get_paths(EID: str, data_dir, out_dir, projectname, test_mode = False):
     See github repo for more info on directory structure.
 
     :param EID: subject ID
-    :param data_dir: directory where imaging data is stored (e.g., UKB/Data_Imaging)
-    :param out_dir: output directory for MIND networks (e.g., UKB/Data_Imaging)
+    :param data_dir: directory where imaging data is stored (e.g., dir/Data_Imaging)
+    :param out_dir: output directory for MIND networks (e.g., dur/Data_Imaging)
     :param mind_dir: base directory for MIND outputs; defaults to DATA_DIR if not given
     :param projectname: project name which will become the extension of your out directory
     :param test_mode: whether to run in test mode or not, defaults to False - where the 'test' is saving all output in scratch (i.e., rds/hpc-work), rather than in a shared outputs directory
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     $ python MIND_pipeline_2026.py --subject="SUB0000001" --data_dir="your/data/dir" --out_dir="your/our/dir" --projectname="yourprojectname" --parcellation="aparc" --feature_list_to_use=("CT", "SA") --space="native" --no-micro --return_qc --create_files --test_mode
     """
 
-    parser = argparse.ArgumentParser(description='Run UKB MIND pipeline')
+    parser = argparse.ArgumentParser(description='Run MIND pipeline')
     parser.add_argument("--subject",
                         required=True,
                         help="EID of the subject for which you want to run MIND")
