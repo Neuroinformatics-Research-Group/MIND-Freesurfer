@@ -100,20 +100,17 @@ If you set the flag 'return_qc' as True, every run of the pipeline will produce 
     - Total number of vertices equal to 0 ('n_zero_values')
     - Entropy Concentration Coefficient across all ROIs, regardless of whether they are used in the MIND networks (i.e., 'lh_??' for HCP parcellations^1) ('C_n_outliers', 'C_n_identical_values', 'C_n_zero_values')
     - Entropy Concentration Coefficient^2 across only ROIs included in the MIND networks (i.e., excluding 'lh_??' for HCP parcellations) ('C_n_outliers_excl_bad_rois', 'C_n_identical_values_excl_bad_rois', 'C_n_zero_values_excl_bad_rois')
+    - The dataframe/file is in long formate, so a 'features' column containing the respective features (i.e., CT, FA, etc.)
 
 1) Applied the same 'bad ROI' logic as in the original MIND network computation (refer to Sebenius et al., 2023 for more detailed information)
 2) Entropy Concentration Coefficient is computed using the equation first described in Bandt (2020), defined in the following section (see 'Concentration coefficient per feature').
    
-- **File 2**: A per 
-
-Each QC file reports the following, both **overall** and **broken down by ROI**:
-
-- Total number of vertices with a value of `0`
-- Number of vertices equal to `0`, per ROI
-- Total number of vertices more than **7 MADs** from the median after z-scoring vertex-level data
-- The same MAD-based outlier count, per ROI
-- Proportion of identical values, both overall and per ROI
-
+- **File 2**: A **per ROI** QC file (SUBXXXX_roi_qc.csv), will contain:
+    - Total number of vertices ('n_total')
+    - Total number of outlier vertices, which are vertices more than **7 MADs** from the median after z-scoring vertex-level data ('n_outliers')
+    - Total number of vertices equal to 0 ('n_zero_values')
+    - The dataframe/file is in long formate, so a 'features' column containing the respective features (i.e., CT, FA, etc.)
+    - An ROI column containing the respective ROI labels
 ---
 
 ## Concentration coefficient per feature
