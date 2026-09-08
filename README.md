@@ -78,7 +78,7 @@ export projectname="PROJECTNAME" -> what your want project to be named, which wi
 
 export parcellation="aparc" # "500_sym.aparc" "HCP.coarse.fsaverage.aparc" "HCP.fsaverage.aparc" -> the parcellation you are planning to use (some examples shown)
 
-export feature_list_to_use="['FA', 'MD', 'ICVF', 'ISOVF', 'OD', 'CT', 'MC', 'Vol', 'SD', 'SA']" -> which features you want to compute your MIND one - N.B., these will also be the name the output folder (i.e., if you are using ['FA', 'MD'] your final folder will be called FA_MD). It also means that if you use the same features but in a different order you will get a new folder!! (i.e., if you are using ['MD', 'FA'] your final folder will be called MD_FA). 
+export feature_list_to_use="['FA', 'MD', 'ICVF', 'ISOVF', 'OD', 'CT', 'MC', 'Vol', 'SD', 'SA']" -> which features you want to compute your MIND one - N.B., these will also be the name of the output folder (i.e., if you are using ['FA', 'MD'] your final folder will be called FA_MD). It also means that if you use the same features but in a different order you will get a new folder!! (i.e., if you are using ['MD', 'FA'] your final folder will be called MD_FA). 
 
 export space="native" # "fsaverage6" -> the space in which you want to run your anaylsis (options shown) 
 
