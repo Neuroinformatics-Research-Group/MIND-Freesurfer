@@ -21,6 +21,8 @@ If you meet that requirement, you're ready to go:
 | `license.txt` | Replace the dummy file with your **real** Freesurfer license |
 | `subject_list.txt` | Replace the dummy file with your **real** subject EIDs (see the dummy file for the expected format) |
 
+N.B.: The file structure of the Freesurfer data directory where the surface data lives is assumed to be "freesurfer_output/subject_id/**surfaces**/subject_id". For any changes related to hardcoded filepaths, you can look at updating the function get_paths() in MIND_pipeline_2026.py (lines x through x).
+
 ---
 
 ## Set Up
