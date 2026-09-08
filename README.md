@@ -46,15 +46,11 @@ The following section refers to editing this file: mind_run_configuration.sh
 
 There are 5 variables that you'll need to edit in your slurm in mind_run_configuration 
 
-scratch_path="your/scratch/directory/path/here" -> this is the path to the directory from which you will run your mind scripts (i.e., hpc-work/run_mind)
-
-email="your@email.ac.uk" -> the email account to which you want slurm updates to be sent to
-
-account=YOURACCOUNT -> the account to be charged for the computational run
-
-partition=PARTITION -> the HPC partition on which you want to run the mind networks
-
-job_name="your_job_name_here" -> what you want your job to be called 
+- scratch_path="your/scratch/directory/path/here" -> this is the path to the directory from which you will run your mind scripts (i.e., hpc-work/run_mind)
+- email="your@email.ac.uk" -> the email account to which you want slurm updates to be sent to
+- account=YOURACCOUNT -> the account to be charged for the computational run
+- partition=PARTITION -> the HPC partition on which you want to run the mind networks
+- job_name="your_job_name_here" -> what you want your job to be called 
 
 N.B. Other slurm arguments are hardcoded in the pipeline - if you want to edit those you'll need to edit launch_mind.sh 
 
@@ -62,7 +58,7 @@ N.B. Other slurm arguments are hardcoded in the pipeline - if you want to edit t
 
 #### subject list file
 
-subject_list_filename="subject_list.txt" -> the name of your subject_list text file (see example in 'run_mind' for what this file should look like 
+- subject_list_filename="subject_list.txt" -> the name of your subject_list text file (see example in 'run_mind' for what this file should look like 
 
 *If you don't save the file in the same directory (your scratch_path variable), then make sure this filename is the full filepath not just the filename.*
 
@@ -70,27 +66,17 @@ subject_list_filename="subject_list.txt" -> the name of your subject_list text f
 
 The following arguments are all of the arguments the main MIND pipeline python script needs in order to run. 
 
-data_dir="your/data/directory/path/here" -> the filepath where you Freesurfer data lives
-
-out_dir="path/where/you/plan/to/save/mind/networks" -> the filepath where you plan to save out your MIND networks, QC file, tmp directories (any pipeline output). If you set test_mode to true below then this out_directory will essentially be ignored and assumed to be your scratch directory (so that the whole pipeline remains self-contained). 
-
-export projectname="PROJECTNAME" -> what your want project to be named, which will also be the name of your final MIND network project directory (i.e., MIND-<projectname>)
-
-export parcellation="aparc" # "500_sym.aparc" "HCP.coarse.fsaverage.aparc" "HCP.fsaverage.aparc" -> the parcellation you are planning to use (some examples shown)
-
-export feature_list_to_use="['FA', 'MD', 'ICVF', 'ISOVF', 'OD', 'CT', 'MC', 'Vol', 'SD', 'SA']" -> which features you want to compute your MIND one - N.B., these will also be the name of the output folder (i.e., if you are using ['FA', 'MD'] your final folder will be called FA_MD). It also means that if you use the same features but in a different order you will get a new folder!! (i.e., if you are using ['MD', 'FA'] your final folder will be called MD_FA). 
-
-export space="native" # "fsaverage6" -> the space in which you want to run your anaylsis (options shown) 
-
-export micro="micro" # "no-micro" -> whether the features you are using include microstructural data, using micro if yes or no-micro if not
-
-export resample="no-resample" # "resample" -> whether you need to resample data (you'll only need to resample if you are using one feature), using resample if yes or no-resample if not
-
-export return_qc="return_qc" # "no-return_qc" -> whether you want the qc files saved out, using return_qc if yes and no-return_qc if not
-
-export create_files="create_files" # "no-create_files" -> whether you want to generate the .mgz files for micro and the fsaverage6 files (if you accidentally say yes and they already exists, that's fine they are skipped), using create_files if yes and no-create_files if not
-
-export test_mode="no-test_mode" # test_mode -> as mentioned above, whether you want to generate everything in your scratch dir or save out to a main project path 
+- data_dir="your/data/directory/path/here" -> the filepath where you Freesurfer data lives
+- out_dir="path/where/you/plan/to/save/mind/networks" -> the filepath where you plan to save out your MIND networks, QC file, tmp directories (any pipeline output). If you set test_mode to true below then this out_directory will essentially be ignored and assumed to be your scratch directory (so that the whole pipeline remains self-contained).
+- export projectname="PROJECTNAME" -> what your want project to be named, which will also be the name of your final MIND network project directory (i.e., MIND-<projectname>)
+- export parcellation="aparc" # "500_sym.aparc" "HCP.coarse.fsaverage.aparc" "HCP.fsaverage.aparc" -> the parcellation you are planning to use (some examples shown)
+- export feature_list_to_use="['FA', 'MD', 'ICVF', 'ISOVF', 'OD', 'CT', 'MC', 'Vol', 'SD', 'SA']" -> which features you want to compute your MIND one - N.B., these will also be the name of the output folder (i.e., if you are using ['FA', 'MD'] your final folder will be called FA_MD). It also means that if you use the same features but in a different order you will get a new folder!! (i.e., if you are using ['MD', 'FA'] your final folder will be called MD_FA).
+- export space="native" # "fsaverage6" -> the space in which you want to run your anaylsis (options shown)
+- export micro="micro" # "no-micro" -> whether the features you are using include microstructural data, using micro if yes or no-micro if not
+- export resample="no-resample" # "resample" -> whether you need to resample data (you'll only need to resample if you are using one feature), using resample if yes or no-resample if not
+- export return_qc="return_qc" # "no-return_qc" -> whether you want the qc files saved out, using return_qc if yes and no-return_qc if not
+- export create_files="create_files" # "no-create_files" -> whether you want to generate the .mgz files for micro and the fsaverage6 files (if you accidentally say yes and they already exists, that's fine they are skipped), using create_files if yes and no-create_files if not
+- export test_mode="no-test_mode" # test_mode -> as mentioned above, whether you want to generate everything in your scratch dir or save out to a main project path 
 
 ---
 
