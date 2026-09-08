@@ -165,7 +165,7 @@ def get_micro_features(feature_list_to_use):
 """
 COMMENTS for resolve_features: 
 
-Keeps created .mgz files in tmp directory and is able to pass features for stuff in freesurfer directory and in tmp directories together into the main MIND function
+Keeps created .mgz files in tmp directory and is able to pass features for stuff in UKB directory and in tmp directories together into the main MIND function
 
 1) feature_list is a list of features to be used i.e, ["CT", "FA", "OD"] etc. and can be a combination of micro and macro (note that if your
 list only contains macro you don't need to pass resolve_features
@@ -369,6 +369,7 @@ def get_qc_data(vertex_data,
         })
 
     qc_dataframe = pd.DataFrame(records).set_index('feature')
+    qc_dataframe['feature'] = qc_dataframe.index
 
     # per ROI, long format
     roi_qc = (
@@ -397,6 +398,12 @@ def get_qc_data(vertex_data,
     )
 
     roi_qc = roi_qc.rename(index=feature_conv_dict, level='feature')
+
+    # add a column with the ROI name, mirroring the index level so it's
+    # directly usable/joinable alongside n_vertices without needing to
+    # reset the index first
+    roi_qc[label_col] = roi_qc.index.get_level_values('roi')
+    roi_qc['feature'] = roi_qc.index.get_level_values('feature')
 
     # Identify "bad" ROIs using the exact same exclusion rule get_vertex_df
     # applies when building combined_regions (unknown/medial-wall/placeholder
