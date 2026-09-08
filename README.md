@@ -213,6 +213,8 @@ $$
 
 This is computed independently per feature `f` and per count type `c`, producing the per-feature concentration coefficients reported for each metric.
 
+**tldr:** values near to 1 mean most of your bad/vertex data of interest is in one ROI, value near 0 mean they are more evenly spread across ROIs. Using this coefficient over, i.e., Gini's, should make coefficients between different parcellations comparable (what is meant by *'largely unbiased by the number of ROIS'*).
+
 ---
 
 ## References
