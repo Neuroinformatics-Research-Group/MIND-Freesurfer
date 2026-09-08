@@ -54,34 +54,35 @@ pip install -r requirements.txt
 ```bash
 MIND-<projectname>/
 ├── networks/
-│   └── <subject folder, e.g. SUBXXXXX>/
-│       └── features/                       # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
-│           └── <parcellation>/
-│               ├── native/
+│   └── native/
+│       └── <parcellation>/
+│           └── features/                       # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
 │               │   ├── QC/
-│               │   │   ├── roi_qc.csv      # run once, all 10 features
-│               │   │   └── global_qc.csv   # run once, all 10 features
+│               │   │   ├── SUBXXXXX_roi_qc.csv      # run once, all 10 features
+│               │   │   └── SUBXXXXX_global_qc.csv   # run once, all 10 features
 │               │   └── MIND/
 │               │       ├── SUBXXXXX_mind_raw.csv
 │               │       └── SUBXXXXX_mind_pca.csv
-│               └── fsaverage6/
-│                   ├── QC/
-│                   │   ├── roi_qc.csv      # run once, all 10 features
-│                   │   └── global_qc.csv   # run once, all 10 features
-│                   └── MIND/
-│                       ├── SUBXXXXX_mind_raw.csv
-│                       └── SUBXXXXX_mind_pca.csv
+│   └── fsaverage6/
+│       └── <parcellation>/
+│           └── features/                       # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
+│               │   ├── QC/
+│               │   │   ├── SUBXXXXX_roi_qc.csv      # run once, all 10 features
+│               │   │   └── SUBXXXXX_global_qc.csv   # run once, all 10 features
+│               │   └── MIND/
+│               │       ├── SUBXXXXX_mind_raw.csv
+│               │       └── SUBXXXXX_mind_pca.csv
 │
 └── stats/
     └── features/                           # e.g. CT_SA_SD_Vol_MC_FA_MD_ICVF_ISOVF_OD
         ├── QC/
         │   └── <parcellation>/
         │       ├── native/
-        │       │   ├── roi_qc.csv          # run once, all 10 features
-        │       │   └── global_qc.csv       # run once, all 10 features
+        │       │   ├── roi_qc.csv          # all 10 features
+        │       │   └── global_qc.csv       # all 10 features
         │       └── fsaverage6/
-        │           ├── roi_qc.csv          # run once, all 10 features
-        │           └── global_qc.csv       # run once, all 10 features
+        │           ├── roi_qc.csv          # all 10 features
+        │           └── global_qc.csv       # all 10 features
         └── pca_model_weights/
             ├── scaler.pkl                  # standard scaler weights
             └── pca_weights.pkl             # feature x PCA weight matrix
