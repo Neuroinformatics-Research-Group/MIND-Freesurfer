@@ -210,3 +210,9 @@ This is computed independently per feature `f` and per count type `c`, producing
 Bandt, C. (2020). Entropy Ratio and Entropy Concentration Coefficient, with Application to the COVID-19 Pandemic. *Entropy*, 22(11), 1315. https://doi.org/10.3390/e22111315
 
 Sebenius, I., Seidlitz, J., Warrier, V., Bethlehem, R. A., Alexander-Bloch, A., Mallard, T. T., ... & Morgan, S. E. (2023). Robust estimation of cortical similarity networks from brain MRI. *Nature neuroscience*, 26(8), 1461-1471.
+
+---
+
+## License
+
+This project is licensed under the PolyForm Noncommercial License 1.0.0. See LICENSE for details. 
